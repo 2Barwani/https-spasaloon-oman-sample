@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saawan — Spa &amp; Hammam</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500&display=swap');
+
+  :root{
+    --ink:#1c241f;          /* deep botanical near-black green */
+    --moss:#3a4a3c;
+    --sage:#7d8f78;
+    --mist:#c4cfc0;
+    --sand:#e9e2d3;
+    --cream:#f4efe4;
+    --gold:#b89653;         /* soft gold leaf */
+    --gold-lt:#d8c08a;
+    --paper:#0f140f;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--paper);
+    color:var(--cream);
+    font-family:'Jost',sans-serif;
+    font-weight:300;
+    overflow-x:hidden;
+    cursor:none;
+  }
+  @media (hover:none){ body{cursor:auto;} }
+
+  ::selection{background:var(--gold);color:var(--ink);}
+
+  /* custom cursor glow */
+  .cursor{
+    position:fixed;top:0;left:0;width:340px;height:340px;border-radius:50%;
+    background:radial-gradient(circle, rgba(184,150,83,0.16) 0%, rgba(184,150,83,0) 65%);
+    transform:translate(-50%,-50%);pointer-events:none;z-index:9999;
+    transition:opacity .4s ease;mix-blend-mode:screen;
+  }
+  .cursor-dot{
+    position:fixed;top:0;left:0;width:8px;height:8px;border-radius:50%;
+    background:var(--gold-lt);transform:translate(-50%,-50%);pointer-events:none;z-index:9999;
+    transition:width .3s ease,height .3s ease,background .3s ease;
+  }
+  @media (hover:none){ .cursor,.cursor-dot{display:none;} }
+
+  /* ---------- NAV ---------- */
+  nav{
+    position:fixed;top:0;left:0;right:0;z-index:100;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:32px 56px;
+    transition:background .6s ease,padding .6s ease,backdrop-filter .6s ease;
+  }
+  nav.scrolled{
+    background:rgba(15,20,15,0.72);backdrop-filter:blur(14px);
+    padding:20px 56px;border-bottom:1px solid rgba(184,150,83,0.18);
+  }
+  .logo{
+    font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:500;
+    letter-spacing:6px;color:var(--cream);text-transform:uppercase;
+  }
+  .logo span{color:var(--gold);}
+  .nav-links{display:flex;gap:42px;align-items:center;}
+  .nav-links a{
+    color:var(--mist);text-decoration:none;font-size:13px;letter-spacing:2.5px;
+    text-transform:uppercase;position:relative;padding:4px 0;transition:color .4s ease;
+  }
+  .nav-links a::after{
+    content:"";position:absolute;left:0;bottom:0;width:0;height:1px;
+    background:var(--gold);transition:width .45s cubic-bezier(.2,.7,.2,1);
+  }
+  .nav-links a:hover{color:var(--cream);}
+  .nav-links a:hover::after{width:100%;}
+  .nav-book{
+    border:1px solid rgba(184,150,83,0.5);padding:12px 26px;border-radius:2px;
+    color:var(--gold-lt)!important;
+  }
+  .nav-book::after{display:none;}
+  .nav-book:hover{background:var(--gold);color:var(--ink)!important;border-color:var(--gold);}
+
+  /* hamburger */
+  .burger{display:none;background:none;border:none;cursor:pointer;width:34px;height:24px;position:relative;z-index:200;}
+  .burger span{position:absolute;left:0;width:100%;height:1.5px;background:var(--cream);transition:transform .45s cubic-bezier(.2,.7,.2,1),opacity .3s ease;}
+  .burger span:nth-child(1){top:6px;}
+  .burger span:nth-child(2){bottom:6px;}
+  body.menu-open .burger span:nth-child(1){top:11px;transform:rotate(45deg);background:var(--gold-lt);}
+  body.menu-open .burger span:nth-child(2){bottom:11px;transform:rotate(-45deg);background:var(--gold-lt);}
+
+  /* mobile menu overlay */
+  .m-menu{
+    position:fixed;inset:0;z-index:150;display:flex;flex-direction:column;
+    justify-content:center;gap:8px;padding:0 40px;
+    background:linear-gradient(160deg,#0f140f,#161e16 60%,#0c110c);
+    clip-path:circle(0% at calc(100% - 44px) 40px);
+    transition:clip-path .7s cubic-bezier(.76,0,.24,1),visibility .7s;
+    pointer-events:none;visibility:hidden;
+  }
+  body.menu-open .m-menu{clip-path:circle(150% at calc(100% - 44px) 40px);pointer-events:auto;visibility:visible;}
+  .m-menu a{
+    font-family:'Cormorant Garamond',serif;font-size:42px;color:var(--cream);
+    text-decoration:none;padding:14px 0;letter-spacing:1px;
+    opacity:0;transform:translateY(20px);transition:opacity .5s ease,transform .5s ease,color .3s ease;
+  }
+  body.menu-open .m-menu a{opacity:1;transform:translateY(0);}
+  body.menu-open .m-menu a:nth-child(1){transition-delay:.18s;}
+  body.menu-open .m-menu a:nth-child(2){transition-delay:.26s;}
+  body.menu-open .m-menu a:nth-child(3){transition-delay:.34s;}
+  body.menu-open .m-menu a:nth-child(4){transition-delay:.42s;}
+  .m-menu a:active{color:var(--gold);}
+  .m-menu .m-reserve{color:var(--gold-lt);font-style:italic;}
+  .m-menu .m-foot{margin-top:34px;font-family:'Jost',sans-serif;font-size:12px;letter-spacing:2px;
+    text-transform:uppercase;color:var(--sage);opacity:0;transition:opacity .5s ease .5s;}
+  body.menu-open .m-menu .m-foot{opacity:1;}
+  @media(max-width:760px){ .nav-links{display:none;} .burger{display:block;} nav,nav.scrolled{padding:22px 26px;} }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;height:100vh;min-height:680px;
+    display:flex;flex-direction:column;justify-content:center;
+    padding:0 56px;overflow:hidden;
+  }
+  /* breathing ambient gradient */
+  .hero-bg{
+    position:absolute;inset:-20%;z-index:0;
+    background:
+      radial-gradient(closest-side at 70% 30%, rgba(58,74,60,0.9), transparent 70%),
+      radial-gradient(closest-side at 25% 70%, rgba(45,58,48,0.85), transparent 70%),
+      radial-gradient(closest-side at 50% 50%, rgba(20,27,21,0.6), transparent 75%),
+      linear-gradient(160deg,#0f140f 0%,#161e16 50%,#0c110c 100%);
+    animation:breathe 16s ease-in-out infinite;
+  }
+  @keyframes breathe{
+    0%,100%{transform:scale(1) translate(0,0);}
+    50%{transform:scale(1.12) translate(2%,-2%);}
+  }
+  /* falling-water shimmer columns */
+  .water{position:absolute;inset:0;z-index:1;opacity:.5;pointer-events:none;overflow:hidden;}
+  .water span{
+    position:absolute;top:-40%;width:1px;height:60%;
+    background:linear-gradient(to bottom,transparent,rgba(216,192,138,0.5),transparent);
+    animation:fall linear infinite;
+  }
+  @keyframes fall{0%{transform:translateY(-60%);opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{transform:translateY(220%);opacity:0;}}
+
+  .hero-grain{position:absolute;inset:0;z-index:2;opacity:.05;pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+  .hero-content{position:relative;z-index:5;max-width:980px;}
+  .hero .eyebrow{
+    display:flex;align-items:center;gap:18px;margin-bottom:30px;
+    opacity:0;transform:translateY(24px);animation:rise 1s ease .3s forwards;
+  }
+  .hero .eyebrow .rule{width:54px;height:1px;background:var(--gold);}
+  .hero .eyebrow span{font-size:13px;letter-spacing:5px;text-transform:uppercase;color:var(--gold-lt);}
+  .hero h1{
+    font-family:'Cormorant Garamond',serif;font-weight:400;
+    font-size:clamp(54px,9vw,128px);line-height:0.98;letter-spacing:-1px;color:var(--cream);
+  }
+  .hero h1 .line{display:block;overflow:hidden;}
+  .hero h1 .line i{
+    display:inline-block;font-style:normal;transform:translateY(110%);
+    animation:reveal 1.1s cubic-bezier(.2,.7,.2,1) forwards;
+  }
+  .hero h1 .l1 i{animation-delay:.45s;}
+  .hero h1 .l2 i{animation-delay:.6s;}
+  .hero h1 em{font-style:italic;color:var(--gold);}
+  @keyframes reveal{to{transform:translateY(0);}}
+  @keyframes rise{to{opacity:1;transform:translateY(0);}}
+
+  .hero p.lede{
+    margin-top:34px;max-width:520px;font-size:18px;line-height:1.7;color:var(--mist);
+    opacity:0;transform:translateY(24px);animation:rise 1s ease .9s forwards;
+  }
+  .hero-cta{
+    margin-top:44px;display:flex;gap:22px;align-items:center;
+    opacity:0;transform:translateY(24px);animation:rise 1s ease 1.05s forwards;
+  }
+  .btn-primary{
+    background:var(--gold);color:var(--ink);padding:18px 40px;border-radius:2px;
+    font-size:13px;letter-spacing:2.5px;text-transform:uppercase;text-decoration:none;
+    position:relative;overflow:hidden;transition:color .5s ease;
+  }
+  .btn-primary span{position:relative;z-index:2;}
+  .btn-primary::before{
+    content:"";position:absolute;inset:0;background:var(--cream);
+    transform:translateX(-101%);transition:transform .5s cubic-bezier(.2,.7,.2,1);z-index:1;
+  }
+  .btn-primary:hover{color:var(--ink);}
+  .btn-primary:hover::before{transform:translateX(0);}
+  .btn-ghost{
+    color:var(--cream);text-decoration:none;font-size:13px;letter-spacing:2.5px;
+    text-transform:uppercase;display:flex;align-items:center;gap:12px;
+  }
+  .btn-ghost .arr{transition:transform .4s ease;}
+  .btn-ghost:hover .arr{transform:translateX(8px);}
+
+  .scroll-hint{
+    position:absolute;bottom:38px;left:56px;z-index:5;display:flex;align-items:center;gap:14px;
+    color:var(--sage);font-size:11px;letter-spacing:3px;text-transform:uppercase;
+    opacity:0;animation:rise 1s ease 1.4s forwards;
+  }
+  .scroll-hint .dash{width:40px;height:1px;background:var(--sage);position:relative;overflow:hidden;}
+  .scroll-hint .dash::after{content:"";position:absolute;inset:0;background:var(--gold);transform:translateX(-100%);animation:slide 2.4s ease-in-out infinite;}
+  @keyframes slide{0%{transform:translateX(-100%);}50%{transform:translateX(0);}100%{transform:translateX(100%);}}
+
+  /* ---------- REVEAL UTIL ---------- */
+  .reveal{opacity:0;transform:translateY(48px);transition:opacity 1s cubic-bezier(.2,.7,.2,1),transform 1s cubic-bezier(.2,.7,.2,1);}
+  .reveal.in{opacity:1;transform:translateY(0);}
+  .reveal.d1{transition-delay:.1s;} .reveal.d2{transition-delay:.22s;} .reveal.d3{transition-delay:.34s;} .reveal.d4{transition-delay:.46s;}
+
+  /* ---------- INTRO STRIP ---------- */
+  .intro{padding:140px 56px;max-width:1100px;}
+  .intro .eyebrow{font-size:13px;letter-spacing:5px;text-transform:uppercase;color:var(--gold);margin-bottom:28px;}
+  .intro h2{
+    font-family:'Cormorant Garamond',serif;font-weight:400;font-size:clamp(30px,4.4vw,52px);
+    line-height:1.25;color:var(--cream);max-width:900px;
+  }
+  .intro h2 em{font-style:italic;color:var(--gold-lt);}
+
+  /* ---------- TREATMENTS ---------- */
+  .treatments{padding:60px 56px 140px;}
+  .sec-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:60px;flex-wrap:wrap;gap:20px;}
+  .sec-head .eyebrow{font-size:13px;letter-spacing:5px;text-transform:uppercase;color:var(--gold);margin-bottom:16px;}
+  .sec-head h3{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:clamp(34px,5vw,64px);color:var(--cream);line-height:1;}
+  .sec-head p{max-width:300px;color:var(--mist);font-size:15px;line-height:1.7;}
+
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+  @media(max-width:900px){.cards{grid-template-columns:1fr;}}
+  .card{
+    position:relative;border:1px solid rgba(196,207,192,0.14);border-radius:3px;
+    padding:42px 36px 38px;overflow:hidden;background:rgba(58,74,60,0.06);
+    transition:border-color .6s ease,transform .6s cubic-bezier(.2,.7,.2,1);
+    min-height:360px;display:flex;flex-direction:column;
+  }
+  .card::before{
+    content:"";position:absolute;left:0;top:0;height:100%;width:100%;z-index:0;
+    background:linear-gradient(160deg,rgba(184,150,83,0.14),transparent 60%);
+    opacity:0;transition:opacity .6s ease;
+  }
+  .card:hover{border-color:rgba(184,150,83,0.55);transform:translateY(-8px);}
+  .card:hover::before{opacity:1;}
+  .card .num{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:var(--gold);position:relative;z-index:2;margin-bottom:auto;}
+  .card .ic{position:relative;z-index:2;font-size:34px;margin-bottom:24px;}
+  .card h4{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:30px;color:var(--cream);position:relative;z-index:2;margin-bottom:14px;}
+  .card p{position:relative;z-index:2;color:var(--mist);font-size:15px;line-height:1.7;margin-bottom:22px;}
+  .card .meta{position:relative;z-index:2;display:flex;justify-content:space-between;align-items:center;
+    border-top:1px solid rgba(196,207,192,0.14);padding-top:18px;margin-top:auto;}
+  .card .meta .time{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--sage);}
+  .card .meta .price{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--gold-lt);}
+
+  /* ---------- RITUAL (horizontal feature) ---------- */
+  .ritual{padding:140px 56px;position:relative;overflow:hidden;}
+  .ritual-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:80px;align-items:center;}
+  @media(max-width:900px){.ritual-grid{grid-template-columns:1fr;gap:48px;}}
+  .ritual .eyebrow{font-size:13px;letter-spacing:5px;text-transform:uppercase;color:var(--gold);margin-bottom:26px;}
+  .ritual h3{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:clamp(34px,5vw,60px);line-height:1.1;color:var(--cream);margin-bottom:28px;}
+  .ritual h3 em{font-style:italic;color:var(--gold-lt);}
+  .ritual p{color:var(--mist);font-size:17px;line-height:1.8;max-width:520px;margin-bottom:36px;}
+  .steps-list{list-style:none;}
+  .steps-list li{
+    display:flex;gap:22px;padding:22px 0;border-top:1px solid rgba(196,207,192,0.14);
+    align-items:baseline;
+  }
+  .steps-list li .s-n{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--gold);font-size:18px;min-width:34px;}
+  .steps-list li .s-t{font-size:17px;color:var(--cream);}
+  .steps-list li .s-d{font-size:14px;color:var(--sage);margin-left:auto;letter-spacing:1px;}
+
+  .ritual-visual{
+    position:relative;aspect-ratio:3/4;border-radius:4px;overflow:hidden;
+    background:linear-gradient(160deg,#2c3a2e,#161e16);border:1px solid rgba(184,150,83,0.22);
+  }
+  .ritual-visual .ripple{
+    position:absolute;top:50%;left:50%;width:40px;height:40px;border-radius:50%;
+    border:1px solid rgba(216,192,138,0.5);transform:translate(-50%,-50%);
+    animation:ripple 5s ease-out infinite;
+  }
+  .ritual-visual .ripple:nth-child(2){animation-delay:1.6s;}
+  .ritual-visual .ripple:nth-child(3){animation-delay:3.2s;}
+  @keyframes ripple{0%{width:40px;height:40px;opacity:.9;}100%{width:520px;height:520px;opacity:0;}}
+  .ritual-visual .stone{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    font-family:'Cormorant Garamond',serif;font-style:italic;font-size:26px;color:var(--gold-lt);
+    text-align:center;letter-spacing:1px;
+  }
+
+  /* ---------- QUOTE ---------- */
+  .quote{padding:160px 56px;text-align:center;max-width:1100px;margin:0 auto;}
+  .quote p{font-family:'Cormorant Garamond',serif;font-weight:400;font-style:italic;
+    font-size:clamp(28px,4.5vw,56px);line-height:1.35;color:var(--cream);}
+  .quote p em{color:var(--gold);font-style:italic;}
+  .quote .by{margin-top:34px;font-size:12px;letter-spacing:4px;text-transform:uppercase;color:var(--sage);}
+
+  /* ---------- BOOK CTA ---------- */
+  .book{position:relative;padding:150px 56px;overflow:hidden;border-top:1px solid rgba(184,150,83,0.18);}
+  .book-bg{position:absolute;inset:-20%;z-index:0;
+    background:radial-gradient(closest-side at 50% 40%,rgba(58,74,60,0.8),transparent 70%),linear-gradient(160deg,#0f140f,#161e16);
+    animation:breathe 16s ease-in-out infinite;}
+  .book-inner{position:relative;z-index:3;text-align:center;max-width:760px;margin:0 auto;}
+  .book .eyebrow{font-size:13px;letter-spacing:5px;text-transform:uppercase;color:var(--gold);margin-bottom:26px;}
+  .book h2{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:clamp(40px,6.5vw,84px);line-height:1.02;color:var(--cream);margin-bottom:24px;}
+  .book h2 em{font-style:italic;color:var(--gold-lt);}
+  .book p{color:var(--mist);font-size:17px;line-height:1.7;margin-bottom:42px;}
+
+  /* ---------- FOOTER ---------- */
+  footer{padding:60px 56px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px;border-top:1px solid rgba(196,207,192,0.1);}
+  footer .logo{font-size:22px;}
+  footer .cols{display:flex;gap:48px;flex-wrap:wrap;}
+  footer .cols a{color:var(--mist);text-decoration:none;font-size:13px;letter-spacing:2px;text-transform:uppercase;transition:color .4s ease;}
+  footer .cols a:hover{color:var(--gold);}
+  footer .fine{width:100%;text-align:center;color:var(--sage);font-size:12px;letter-spacing:2px;padding-top:30px;}
+
+  /* ---------- MOBILE REFINEMENTS ---------- */
+  @media(max-width:760px){
+    .hero{padding:0 26px;min-height:600px;}
+    .hero .eyebrow{margin-bottom:22px;gap:12px;}
+    .hero .eyebrow span{font-size:11px;letter-spacing:3px;}
+    .hero .eyebrow .rule{width:34px;}
+    .hero h1{font-size:clamp(46px,15vw,68px);}
+    .hero p.lede{font-size:16px;margin-top:26px;max-width:100%;}
+    .hero-cta{flex-direction:column;align-items:stretch;gap:14px;margin-top:36px;}
+    .btn-primary{text-align:center;padding:18px 28px;}
+    .btn-ghost{justify-content:center;padding:6px 0;}
+    .scroll-hint{left:26px;bottom:26px;}
+
+    .intro{padding:90px 26px;}
+    .intro h2{font-size:clamp(26px,7vw,34px);}
+
+    .treatments{padding:30px 26px 90px;}
+    .sec-head{margin-bottom:40px;}
+    .cards{gap:18px;}
+    .card{min-height:auto;padding:34px 28px 30px;}
+    .card .ic{margin-bottom:18px;}
+
+    .ritual{padding:90px 26px;}
+    .ritual p{font-size:16px;}
+    .ritual-visual{aspect-ratio:1/1;max-height:420px;}
+    .steps-list li{padding:18px 0;gap:14px;flex-wrap:wrap;}
+    .steps-list li .s-d{margin-left:auto;}
+
+    .quote{padding:100px 26px;}
+    .book{padding:100px 26px;}
+    .book .btn-primary{display:inline-block;}
+
+    footer{padding:48px 26px;flex-direction:column;align-items:flex-start;gap:28px;}
+    footer .cols{gap:20px 32px;}
+    footer .fine{text-align:left;}
+
+    /* steadier ambient motion on phones (battery + readability) */
+    .hero-bg,.book-bg{animation-duration:22s;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none!important;transition:none!important;}
+    .reveal{opacity:1;transform:none;}
+    .hero h1 .line i{transform:none;}
+  }
+</style>
+</head>
+<body>
+  <div class="cursor" id="cur"></div>
+  <div class="cursor-dot" id="curDot"></div>
+
+  <!-- NAV -->
+  <nav id="nav">
+    <div class="logo">SAA<span>WAN</span></div>
+    <div class="nav-links">
+      <a href="#treatments">Treatments</a>
+      <a href="#ritual">The Ritual</a>
+      <a href="#book">Visit</a>
+      <a href="#book" class="nav-book">Reserve</a>
+    </div>
+    <button class="burger" id="burger" aria-label="Open menu">
+      <span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- MOBILE MENU -->
+  <div class="m-menu" id="mMenu">
+    <a href="#treatments">Treatments</a>
+    <a href="#ritual">The Ritual</a>
+    <a href="#book">Visit</a>
+    <a href="#book" class="m-reserve">Reserve a ritual</a>
+    <div class="m-foot">Al Mouj, Muscat · Open daily 10–22</div>
+  </div>
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="hero-bg"></div>
+    <div class="water" id="water"></div>
+    <div class="hero-grain"></div>
+    <div class="hero-content">
+      <div class="eyebrow"><span class="rule"></span><span>Spa &amp; Hammam · Muscat</span></div>
+      <h1>
+        <span class="line l1"><i>Stillness,</i></span>
+        <span class="line l2"><i>poured like <em>water.</em></i></span>
+      </h1>
+      <p class="lede">An unhurried sanctuary of warm stone, steam and slow ritual — where time loosens and the body remembers ease.</p>
+      <div class="hero-cta">
+        <a href="#book" class="btn-primary"><span>Reserve a ritual</span></a>
+        <a href="#treatments" class="btn-ghost">Explore treatments <span class="arr">→</span></a>
+      </div>
+    </div>
+    <div class="scroll-hint"><span class="dash"></span> Scroll to wander</div>
+  </header>
+
+  <!-- INTRO -->
+  <section class="intro">
+    <div class="eyebrow reveal">The philosophy</div>
+    <h2 class="reveal d1">We believe rest is not idleness but <em>restoration</em> — a craft of warm water, patient hands, and quiet rooms that ask nothing of you.</h2>
+  </section>
+
+  <!-- TREATMENTS -->
+  <section class="treatments" id="treatments">
+    <div class="sec-head">
+      <div>
+        <div class="eyebrow reveal">Signature treatments</div>
+        <h3 class="reveal d1">The Menu</h3>
+      </div>
+      <p class="reveal d2">Each ritual is composed like a piece of music — a beginning, a deepening, and a slow return.</p>
+    </div>
+    <div class="cards">
+      <article class="card reveal d1">
+        <div class="num">i</div>
+        <div class="ic">🌿</div>
+        <h4>Cedar &amp; Steam</h4>
+        <p>A traditional hammam of black-soap cleansing, gentle exfoliation and cedar-scented steam to open and soften the skin.</p>
+        <div class="meta"><span class="time">75 min</span><span class="price">42 OMR</span></div>
+      </article>
+      <article class="card reveal d2">
+        <div class="num">ii</div>
+        <div class="ic">🪨</div>
+        <h4>Warm Stone</h4>
+        <p>Heated basalt stones glide along the spine, melting held tension and drawing the body into deep, weighted calm.</p>
+        <div class="meta"><span class="time">90 min</span><span class="price">55 OMR</span></div>
+      </article>
+      <article class="card reveal d3">
+        <div class="num">iii</div>
+        <div class="ic">🌙</div>
+        <h4>Moonlit Hands</h4>
+        <p>A full-body oil massage in candlelight, paced to the breath, finishing with a frankincense scalp ritual.</p>
+        <div class="meta"><span class="time">120 min</span><span class="price">68 OMR</span></div>
+      </article>
+    </div>
+  </section>
+
+  <!-- RITUAL -->
+  <section class="ritual" id="ritual">
+    <div class="ritual-grid">
+      <div>
+        <div class="eyebrow reveal">The arc of a visit</div>
+        <h3 class="reveal d1">Every visit follows <em>a quiet sequence.</em></h3>
+        <p class="reveal d2">There is no rushing here. You are received, prepared, worked upon, and slowly returned to the world — each stage drawn out as long as it deserves.</p>
+        <ul class="steps-list">
+          <li class="reveal d2"><span class="s-n">i</span><span class="s-t">Arrival tea &amp; warm foot soak</span><span class="s-d">15 min</span></li>
+          <li class="reveal d3"><span class="s-n">ii</span><span class="s-t">Steam &amp; cleansing in the hammam</span><span class="s-d">25 min</span></li>
+          <li class="reveal d3"><span class="s-n">iii</span><span class="s-t">The treatment of your choosing</span><span class="s-d">60–90 min</span></li>
+          <li class="reveal d4"><span class="s-n">iv</span><span class="s-t">Rest in the silence room</span><span class="s-d">unhurried</span></li>
+        </ul>
+      </div>
+      <div class="ritual-visual reveal d2">
+        <div class="ripple"></div>
+        <div class="ripple"></div>
+        <div class="ripple"></div>
+        <div class="stone">“breathe<br>out”</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUOTE -->
+  <section class="quote">
+    <p class="reveal">“I left lighter than I arrived — as if the week had been <em>rinsed</em> from my shoulders.”</p>
+    <div class="by reveal d1">— A guest, after the Warm Stone ritual</div>
+  </section>
+
+  <!-- BOOK -->
+  <section class="book" id="book">
+    <div class="book-bg"></div>
+    <div class="book-inner">
+      <div class="eyebrow reveal">Reserve</div>
+      <h2 class="reveal d1">Give yourself <em>an hour</em> of quiet.</h2>
+      <p class="reveal d2">Bookings open daily, 10am until late. We keep the rooms unhurried, so spaces are limited.</p>
+      <a href="#" class="btn-primary reveal d3"><span>Reserve a ritual</span></a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="logo">SAA<span>WAN</span></div>
+    <div class="cols">
+      <a href="#treatments">Treatments</a>
+      <a href="#ritual">The Ritual</a>
+      <a href="#book">Visit</a>
+      <a href="#">Instagram</a>
+    </div>
+    <div class="fine">Saawan Spa &amp; Hammam · Al Mouj, Muscat · Open daily 10:00–22:00</div>
+  </footer>
+
+<script>
+  // custom cursor
+  const cur=document.getElementById('cur'),dot=document.getElementById('curDot');
+  let cx=window.innerWidth/2,cy=window.innerHeight/2,dx=cx,dy=cy;
+  window.addEventListener('mousemove',e=>{cx=e.clientX;cy=e.clientY;dot.style.left=cx+'px';dot.style.top=cy+'px';});
+  function loop(){dx+=(cx-dx)*0.12;dy+=(cy-dy)*0.12;cur.style.left=dx+'px';cur.style.top=dy+'px';requestAnimationFrame(loop);}loop();
+  document.querySelectorAll('a,button,.card').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{dot.style.width='26px';dot.style.height='26px';dot.style.background='rgba(216,192,138,0.4)';});
+    el.addEventListener('mouseleave',()=>{dot.style.width='8px';dot.style.height='8px';dot.style.background='var(--gold-lt)';});
+  });
+
+  // nav scroll state
+  const nav=document.getElementById('nav');
+  window.addEventListener('scroll',()=>{nav.classList.toggle('scrolled',window.scrollY>40);});
+
+  // mobile menu
+  const burger=document.getElementById('burger');
+  const mMenu=document.getElementById('mMenu');
+  burger.addEventListener('click',()=>{document.body.classList.toggle('menu-open');});
+  mMenu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{document.body.classList.remove('menu-open');}));
+
+  // reveal on scroll
+  const io=new IntersectionObserver((entries)=>{
+    entries.forEach(en=>{if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}});
+  },{threshold:0.18});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+  // falling water columns
+  const water=document.getElementById('water');
+  for(let i=0;i<26;i++){
+    const s=document.createElement('span');
+    s.style.left=(Math.random()*100)+'%';
+    s.style.animationDuration=(3+Math.random()*4)+'s';
+    s.style.animationDelay=(-Math.random()*6)+'s';
+    s.style.height=(40+Math.random()*40)+'%';
+    water.appendChild(s);
+  }
+</script>
+</body>
+</html>
